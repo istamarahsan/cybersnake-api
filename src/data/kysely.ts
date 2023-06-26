@@ -1,9 +1,9 @@
 import { Kysely } from "kysely";
 import { LeaderboardData } from "../lib/leaderboard/leaderboardData.js";
-import { DB } from 'kysely-codegen';
 import { Result, error, ok } from "../util/result.js";
 import { DateTime } from "luxon";
 import { LeaderboardEntry } from "../lib/leaderboard/leaderboard.js";
+import { DB } from "./db.js";
 
 export class KyselyData implements LeaderboardData {
     private readonly db: Kysely<DB>

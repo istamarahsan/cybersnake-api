@@ -5,7 +5,7 @@ import { DateTime } from 'luxon';
 import { LeaderboardService } from './lib/leaderboard/leaderboardService.js';
 import { KyselyData } from './data/kysely.js';
 import { Kysely, MysqlDialect } from 'kysely';
-import { DB } from 'kysely-codegen';
+import { DB } from './data/db.js';
 import { createPool } from 'mysql2'
 import { koaBody } from 'koa-body';
 import { z } from 'zod';
@@ -86,5 +86,7 @@ export function start(config: CybersnakeApiConfig) {
 
     app.use(router.routes())
 
-    app.listen(Math.floor(config.port));
+    const port = Math.floor(config.port)
+    app.listen(port)
+    console.log(`Listening on port ${port}`)
 }
