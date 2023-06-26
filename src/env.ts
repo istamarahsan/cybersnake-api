@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const schema = z.object({
-    PORT: z.number().default(3000),
+    PORT: z.string().default("3000"),
     ACCESS_SECRET: z.string(),
     MYSQL_USER: z.string(),
     MYSQL_PASSWORD: z.string(),

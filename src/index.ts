@@ -1,6 +1,7 @@
 import { exit } from "process";
 import { loadEnv } from "./env.js";
 import { CybersnakeApiConfig, start } from "./cybersnakeApi.js";
+import { number } from "zod";
 
 const env = loadEnv();
 if (!env.success) {
@@ -8,8 +9,9 @@ if (!env.success) {
     env.error.issues.forEach(err => console.error(err.path.join("."), err.message))
     exit(1)
 }
+const port = Number.parseInt(env.data.PORT)
 const config: CybersnakeApiConfig = {
-    port: env.data.PORT,
+    port: port,
     accessSecret: env.data.ACCESS_SECRET,
     mysqlHost: env.data.MYSQL_HOST,
     mysqlDatabase: env.data.MYSQL_DATABASE,
