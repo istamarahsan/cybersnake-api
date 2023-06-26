@@ -1,0 +1,8 @@
+import { DateTime } from "luxon";
+import { LeaderboardEntry } from "./leaderboard.js";
+import { Result } from "../../util/result.js";
+
+export interface LeaderboardData {
+    addEntry(id: string, name: string, score: number, date_created: DateTime): Promise<Result<LeaderboardEntry>>
+    getAllEntries(): Promise<Result<LeaderboardEntry[]>>
+}
