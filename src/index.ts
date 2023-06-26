@@ -12,6 +12,7 @@ if (!env.success) {
 const port = Number.parseInt(env.data.PORT)
 const config: CybersnakeApiConfig = {
     port: port,
+    enableSsl: env.data.MYSQL_SSL === "true",
     accessSecret: env.data.ACCESS_SECRET,
     mysqlHost: env.data.MYSQL_HOST,
     mysqlDatabase: env.data.MYSQL_DATABASE,

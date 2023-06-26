@@ -12,6 +12,7 @@ import { z } from 'zod';
 
 export type CybersnakeApiConfig = {
     port: number,
+    enableSsl: boolean,
     accessSecret: string,
     mysqlHost: string,
     mysqlDatabase: string,
@@ -34,6 +35,9 @@ export function start(config: CybersnakeApiConfig) {
                 database: config.mysqlDatabase,
                 user: config.mysqlUser,
                 password: config.mysqlPassword,
+                ssl: config.enableSsl ? {
+                    rejectUnauthorized: true
+                } : undefined
             })
         })
     }))
