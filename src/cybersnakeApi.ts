@@ -123,6 +123,10 @@ export function start(config: CybersnakeApiConfig) {
         ctx.body = JSON.stringify(parse.data)
     })
 
+    router.delete('/leaderboard', async (ctx) => {
+        const result = await leaderboardService.clearAllEntries()
+        ctx.status = result.ok ? 200 : 500
+    })
 
     app.use(router.routes())
 

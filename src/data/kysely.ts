@@ -51,4 +51,12 @@ export class KyselyData implements LeaderboardData {
             return error(undefined)
         }
     }
+    async deleteAllEntries(): Promise<Result<bigint>> {
+        try {
+            const result = await this.db.deleteFrom("leaderboard").executeTakeFirst();
+            return ok(result.numDeletedRows)
+        } catch (_) {
+            return error(undefined)
+        }
+    }
 }

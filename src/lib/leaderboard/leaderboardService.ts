@@ -1,5 +1,5 @@
 import { UUID, randomUUID } from "crypto";
-import { Result } from "../../util/result.js";
+import { Result, error, ok } from "../../util/result.js";
 import { LeaderboardEntry } from "./leaderboard.js";
 import { LeaderboardData } from "./leaderboardData.js";
 import { DateTimeProvider } from "../../util/date.js";
@@ -17,6 +17,10 @@ export class LeaderboardService {
         return this.data.addEntry(uuid, name, score, now);
     }
     async getAllEntries(): Promise<Result<LeaderboardEntry[]>> {
-        return this.data.getAllEntries();
+        return await this.data.getAllEntries();
+    }
+    async clearAllEntries(): Promise<Result<undefined>> {
+        const deleteResult = await this.data.deleteAllEntries();
+        return deleteResult.ok ? ok(undefined) : error(undefined);
     }
 }
