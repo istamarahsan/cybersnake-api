@@ -70,7 +70,7 @@ export function start(config: CybersnakeApiConfig) {
         ctx.status = 200
     })
 
-    const leaderboardPostSchema = z.object({
+    const leaderboardPostRequestSchema = z.object({
         name: z.string(),
         score: z.number().int(),
     })
@@ -79,7 +79,7 @@ export function start(config: CybersnakeApiConfig) {
             ctx.status = 400
             return
         }
-        const parse = leaderboardPostSchema.safeParse(ctx.request.body)
+        const parse = leaderboardPostRequestSchema.safeParse(ctx.request.body)
         if (!parse.success) {
             ctx.status = 400
             return
@@ -87,6 +87,42 @@ export function start(config: CybersnakeApiConfig) {
         const result = await leaderboardService.addEntry(parse.data.name, parse.data.score)
         ctx.status = result.ok ? 200 : 500
     })
+
+    const leaderboardGetResponseSchema = z.object({
+        page: z.number().int().default(0),
+        pages: z.number().int().default(1),
+        pageSize: z.number().int().default(1),
+        data: z.array(
+            z.object({
+                name: z.string(),
+                score: z.number().int(),
+                date: z.string(),
+            }))
+    })
+    router.get('/leaderboard', async (ctx) => {
+        const fetch = await leaderboardService.getAllEntries()
+        if (!fetch.ok) {
+            ctx.status = 500
+            return
+        }
+        const parse = leaderboardGetResponseSchema.safeParse({
+            page: 0,
+            pages: 1,
+            pageSize: fetch.value.length,
+            data: fetch.value.map(entry => ({
+                name: entry.name,
+                score: entry.score,
+                date: entry.creationDate.toISO()
+            }))
+        })
+        if (!parse.success) {
+            ctx.status = 500
+            return
+        }
+        ctx.status = 200
+        ctx.body = JSON.stringify(parse.data)
+    })
+
 
     app.use(router.routes())
 
