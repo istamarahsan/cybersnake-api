@@ -4,20 +4,17 @@ import { DateTimeProvider } from './util/date.js';
 import { DateTime } from 'luxon';
 import { LeaderboardService } from './lib/leaderboard/leaderboardService.js';
 import { KyselyData } from './data/kysely.js';
-import { Kysely, MysqlDialect } from 'kysely';
+import { Kysely, PostgresDialect } from 'kysely';
 import { DB } from './data/db.js';
-import { createPool } from 'mysql2'
+import postgres from 'pg';
+const { Pool } = postgres;
 import { koaBody } from 'koa-body';
 import { z } from 'zod';
 
 export type CybersnakeApiConfig = {
     port: number,
-    enableSsl: boolean,
     accessSecret: string,
-    mysqlHost: string,
-    mysqlDatabase: string,
-    mysqlUser: string,
-    mysqlPassword: string
+    postgresUrl: string
 }
 
 export function start(config: CybersnakeApiConfig) {
@@ -25,23 +22,25 @@ export function start(config: CybersnakeApiConfig) {
     const router = new Router()
     const dateTimeProvider: DateTimeProvider = {
         now() {
-            return DateTime.now().toUTC()
+            return DateTime.now()
         },
     }
+
+    const pool = new Pool({
+        connectionString: config.postgresUrl,
+    })
+
     const db = new KyselyData(new Kysely<DB>({
-        dialect: new MysqlDialect({
-            pool: createPool({
-                host: config.mysqlHost,
-                database: config.mysqlDatabase,
-                user: config.mysqlUser,
-                password: config.mysqlPassword,
-                ssl: config.enableSsl ? {
-                    rejectUnauthorized: true
-                } : undefined
-            })
+        dialect: new PostgresDialect({
+            pool: pool
         })
     }))
     const leaderboardService = new LeaderboardService(db, dateTimeProvider)
+
+    app.use(async (ctx, next) => {
+        console.log(`${ctx.method} ${ctx.url}`);
+        await next();
+    });
 
     app.use(async (ctx, next) => {
         await next();

@@ -10,19 +10,23 @@ export class KyselyData implements LeaderboardData {
     constructor(db: Kysely<DB>) {
         this.db = db;
     }
-    async addEntry(id: string, name: string, score: number, date_created: DateTime): Promise<Result<LeaderboardEntry>> {
+    async addEntry(name: string, score: number, date_created: DateTime): Promise<Result<LeaderboardEntry>> {
         try {
+            const asJsDate = date_created.toJSDate();
             await this.db.insertInto('leaderboard')
                 .values({
-                    id: id,
                     name: name,
                     score: score,
-                    creation: date_created.toJSDate()
+                    creation: asJsDate
                 }).execute();
-            const inserted = await this.db.selectFrom("leaderboard").selectAll().where("id", "=", id).executeTakeFirst();
+            const inserted = await this.db
+                .selectFrom("leaderboard")
+                .selectAll()
+                .where("name", "=", name)
+                .where("creation", "=", asJsDate)
+                .executeTakeFirst();
             if (inserted !== undefined) {
                 const entry: LeaderboardEntry = {
-                    id: inserted.id,
                     name: inserted.name,
                     score: inserted.score,
                     creationDate: DateTime.fromJSDate(inserted.creation)
@@ -40,7 +44,6 @@ export class KyselyData implements LeaderboardData {
             const entries = await this.db.selectFrom("leaderboard").selectAll().orderBy("score", "desc").execute();
             const mapped = entries.map((entry) => {
                 return {
-                    id: entry.id,
                     name: entry.name,
                     score: entry.score,
                     creationDate: DateTime.fromJSDate(entry.creation)

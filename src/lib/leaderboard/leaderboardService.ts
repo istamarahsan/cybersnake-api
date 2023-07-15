@@ -12,9 +12,8 @@ export class LeaderboardService {
         this.dateTimeProvider = dateTimeProvider;
     }
     async addEntry(name: string, score: number): Promise<Result<LeaderboardEntry>> {
-        const uuid: UUID = randomUUID();
         const now = this.dateTimeProvider.now();
-        return this.data.addEntry(uuid, name, score, now);
+        return this.data.addEntry(name, score, now);
     }
     async getAllEntries(): Promise<Result<LeaderboardEntry[]>> {
         return await this.data.getAllEntries();
