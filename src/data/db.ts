@@ -4,6 +4,11 @@ export interface Leaderboard {
   creation: Date;
 }
 
+export interface FeedbackLink {
+  link: string;
+}
+
 export interface DB {
   leaderboard: Leaderboard;
+  feedbacklink: FeedbackLink;
 }  

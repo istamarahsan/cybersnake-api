@@ -10,6 +10,7 @@ import postgres from 'pg';
 const { Pool } = postgres;
 import { koaBody } from 'koa-body';
 import { z } from 'zod';
+import { FeedbackService } from './lib/feedback/feedbackService.js';
 
 export type CybersnakeApiConfig = {
     port: number,
@@ -31,12 +32,15 @@ export function start(config: CybersnakeApiConfig) {
         connectionString: config.postgresUrl,
     })
 
-    const db = new KyselyData(new Kysely<DB>({
+    var kysely = new Kysely<DB>({
         dialect: new PostgresDialect({
             pool: pool
         })
-    }))
+    })
+
+    const db = new KyselyData(kysely)
     const leaderboardService = new LeaderboardService(db, dateTimeProvider)
+    const feedbackService = new FeedbackService(kysely)
 
     const public_auth: Koa.Middleware = async (ctx, next) => {
         if (!(ctx.request.header['authorization']?.startsWith("Bearer") ?? false)
