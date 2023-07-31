@@ -7,14 +7,19 @@ export class FeedbackService {
         this.db = db
     }
     async getFeedbackFormUrl(): Promise<string | undefined> {
-        var firstRow = await this.db
+        try {
+            var firstRow = await this.db
             .selectFrom("feedbacklink")
             .selectAll()
             .limit(1)
             .executeTakeFirst()
-        if (firstRow == undefined) {
+            if (firstRow == undefined) {
+                return undefined
+            }
+            return firstRow.link
+        } catch (_) {
             return undefined
         }
-        return firstRow.link
+        
     }
 }

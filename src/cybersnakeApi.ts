@@ -142,6 +142,19 @@ export function start(config: CybersnakeApiConfig) {
         ctx.status = result.ok ? 200 : 500
     })
 
+    router.get('/feedback', public_auth, async (ctx) => {
+        const formUrl = await feedbackService.getFeedbackFormUrl()
+        if (formUrl == undefined) {
+            ctx.status = 404
+            ctx.body = "Feedback data not found"
+            return
+        }
+        ctx.status = 200
+        ctx.body = JSON.stringify({
+            formUrl: formUrl
+        })
+    })
+
     app.use(router.routes())
 
     const port = Math.floor(config.port)
