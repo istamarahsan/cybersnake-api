@@ -11,6 +11,7 @@ if (!env.success) {
 const port = Number.parseInt(env.data.PORT)
 const config: CybersnakeApiConfig = {
     port: port,
+    publicAccessSecret: env.data.PUBLIC_ACCESS_SECRET,
     accessSecret: env.data.ACCESS_SECRET,
     postgresUrl: env.data.POSTGRES_URL,
 }

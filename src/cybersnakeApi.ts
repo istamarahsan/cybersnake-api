@@ -13,6 +13,7 @@ import { z } from 'zod';
 
 export type CybersnakeApiConfig = {
     port: number,
+    publicAccessSecret: string,
     accessSecret: string,
     postgresUrl: string
 }
@@ -37,6 +38,26 @@ export function start(config: CybersnakeApiConfig) {
     }))
     const leaderboardService = new LeaderboardService(db, dateTimeProvider)
 
+    const public_auth: Koa.Middleware = async (ctx, next) => {
+        if (!(ctx.request.header['authorization']?.startsWith("Bearer") ?? false)
+            || !(ctx.request.header['authorization']?.slice("Bearer".length + 1) === config.publicAccessSecret ?? false)) {
+            ctx.status = 401
+            ctx.body = 'Unauthorized'
+            return
+        }
+        await next()
+    }
+
+    const protected_auth: Koa.Middleware = async (ctx, next) => {
+        if (!(ctx.request.header['authorization']?.startsWith("Bearer") ?? false)
+            || !(ctx.request.header['authorization']?.slice("Bearer".length + 1) === config.accessSecret ?? false)) {
+            ctx.status = 401
+            ctx.body = 'Unauthorized'
+            return
+        }
+        await next()
+    }
+
     app.use(async (ctx, next) => {
         console.log(`${ctx.method} ${ctx.url}`);
         await next();
@@ -55,16 +76,6 @@ export function start(config: CybersnakeApiConfig) {
         ctx.set('X-Response-Time', `${ms}ms`);
     });
 
-    app.use(async (ctx, next) => {
-        if (!(ctx.request.header['authorization']?.startsWith("Bearer") ?? false)
-            || !(ctx.request.header['authorization']?.endsWith(config.accessSecret) ?? false)) {
-            ctx.status = 401
-            ctx.body = 'Unauthorized'
-            return
-        }
-        await next()
-    })
-
     router.get('/healthcheck', async (ctx) => {
         ctx.status = 200
     })
@@ -73,7 +84,7 @@ export function start(config: CybersnakeApiConfig) {
         name: z.string(),
         score: z.number().int(),
     })
-    router.post('/leaderboard', koaBody(), async (ctx) => {
+    router.post('/leaderboard', koaBody(), public_auth, async (ctx) => {
         if (!(ctx.request.headers["content-type"] === "application/json")) {
             ctx.status = 400
             return
@@ -98,7 +109,7 @@ export function start(config: CybersnakeApiConfig) {
                 date: z.string(),
             }))
     })
-    router.get('/leaderboard', async (ctx) => {
+    router.get('/leaderboard', public_auth, async (ctx) => {
         const fetch = await leaderboardService.getAllEntries()
         if (!fetch.ok) {
             ctx.status = 500
@@ -122,7 +133,7 @@ export function start(config: CybersnakeApiConfig) {
         ctx.body = JSON.stringify(parse.data)
     })
 
-    router.delete('/leaderboard', async (ctx) => {
+    router.delete('/leaderboard', protected_auth, async (ctx) => {
         const result = await leaderboardService.clearAllEntries()
         ctx.status = result.ok ? 200 : 500
     })
