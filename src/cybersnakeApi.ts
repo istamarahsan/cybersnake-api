@@ -93,13 +93,29 @@ export function start(config: CybersnakeApiConfig) {
             ctx.status = 400
             return
         }
+        
         const parse = leaderboardPostRequestSchema.safeParse(ctx.request.body)
         if (!parse.success) {
             ctx.status = 400
             return
         }
+        
         const result = await leaderboardService.addEntry(parse.data.name, parse.data.score)
-        ctx.status = result.ok ? 200 : 500
+        if (!result.ok) {
+            switch (result.error.type) {
+                case "DataAccessError":
+                    ctx.status = 500
+                    ctx.body = "Internal data service error."
+                    break;
+                case "NameTooLong":
+                    ctx.status = 400
+                    ctx.body = `Name can be up to ${result.error.maximumLength} letters.`
+                    break;
+            }
+            return
+        }
+
+        ctx.status = 200
     })
 
     const leaderboardGetResponseSchema = z.object({
